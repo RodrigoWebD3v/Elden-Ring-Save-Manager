@@ -1,19 +1,22 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 )
 
-func CopyDir(src string, dst string) error {
-	return copyDir(src, dst, true)
+func CopyDirInitialization(src string, dst string) error {
+	return copyDir(src, dst, true, "")
+}
+
+func CopyDir(src string, dst string, name string) error {
+	return copyDir(src, dst, true, name)
 }
 
 // copyDir copia recursivamente e só grava o arquivo de config na chamada raiz.
-func copyDir(src string, dst string, isRoot bool) error {
+func copyDir(src string, dst string, isRoot bool, name string) error {
 	srcInfo, err := os.Stat(src)
 	if err != nil {
 		return err
@@ -31,12 +34,19 @@ func copyDir(src string, dst string, isRoot bool) error {
 	id := GerarId()
 
 	for _, entry := range entries {
+
+		nome := name
+
+		if name == "" {
+			nome = entry.Name()
+		}
+
 		srcPath := filepath.Join(src, entry.Name())
-		dstPath := filepath.Join(dst, entry.Name())
+		dstPath := filepath.Join(dst, nome)
 
 		if entry.IsDir() {
 			// Recursão
-			if err := copyDir(srcPath, dstPath, false); err != nil {
+			if err := copyDir(srcPath, dstPath, false, ""); err != nil {
 				return err
 			}
 
@@ -51,7 +61,7 @@ func copyDir(src string, dst string, isRoot bool) error {
 
 	if isRoot {
 		fmt.Printf("%s\n", dst)
-		CriarConfigFile(dst, id)
+		CriarConfigFile(dst, id, name)
 	}
 
 	return nil
@@ -75,29 +85,4 @@ func CopyFile(src, dst string) error {
 	}
 
 	return out.Sync()
-}
-
-func TornarAtivo(name string) bool {
-	savesPath, err := SavesPath()
-	if err != nil {
-		panic(err)
-	}
-	savePath := filepath.Join(savesPath, name)
-
-	//msg := fmt.Sprintf("Ativo %s", "true")
-
-	file, err := os.Open(savePath + "/save.id")
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	s := bufio.NewScanner(file)
-
-	linhaAtivo := ""
-	for s.Scan() {
-		linhaAtivo = s.Text()
-		fmt.Printf("Tornar Ativo %s", linhaAtivo)
-	}
-
-	return true
 }

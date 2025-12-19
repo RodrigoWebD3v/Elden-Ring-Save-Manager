@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { SaveList } from "@/components/SaveList";
 import { Save } from "@/components/SaveItem";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { FolderPlus, RefreshCw, HardDrive, Save as SaveIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { CarregarSaves, Inicializar } from "../../wailsjs/go/main/App";
+import { CarregarSaves, CriarBackup, Inicializar } from "../../wailsjs/go/main/App";
 
 // Mock data para demonstracao
 const mockSaves: Save[] = [
@@ -58,30 +58,37 @@ const Index = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleInitialize = async () => {
-    setIsLoading(true);
+  useEffect(() => {
     Inicializar().then((result) => {
-          setIsInitialized(result);
-    });
+      CarregarSaves().then((loadedSaves) => {
+        setIsInitialized(true);
+        setSaves(loadedSaves.map((save: any) => ({
+          id: save.Id,
+          name: save.Name,
+          isActive: save.IsAtivo,
+          lastModified: save.LastModified,
+          size: save.Size,
+        })));
+      });
 
-    setIsLoading(false);
+      toast({
+        title: "Inicializado com sucesso!",
+        description: "Pastas criadas e saves carregados.",
+      });
 
-    toast({
-      title: "Inicializado com sucesso!",
-      description: "Pastas criadas e saves carregados.",
-    });
-  };
+    })
+  }, []);
 
   const handleRefresh = async () => {
     setIsLoading(true);
     CarregarSaves().then((loadedSaves) => {
-          setSaves(loadedSaves.map((save: any) => ({
-            id: save.Id,
-            name: save.Name,
-            isActive: save.IsAtivo,
-            lastModified: save.LastModified,
-            size: save.Size,
-          })));
+      setSaves(loadedSaves.map((save: any) => ({
+        id: save.Id,
+        name: save.Name,
+        isActive: save.IsAtivo,
+        lastModified: save.LastModified,
+        size: save.Size,
+      })));
     });
     setIsLoading(false);
     toast({
@@ -90,164 +97,143 @@ const Index = () => {
     });
   };
 
-  const handleCreateBackup = async () => {
-    if (!newSaveName.trim()) {
-      toast({
-        title: "Nome invalido",
-        description: "Digite um nome para o backup.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    // Simula chamada ao backend Go: POST /api/saves/backup
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    
-    const newSave: Save = {
-      id: Date.now().toString(),
-      name: newSaveName.trim(),
-      isActive: false,
-      lastModified: new Date().toLocaleString("pt-BR"),
-      size: "45.0 MB",
-    };
-    
-    setSaves((prev) => [newSave, ...prev]);
-    setNewSaveName("");
-    setIsDialogOpen(false);
-    setIsLoading(false);
-    
+const handleCreateBackup = async () => {
+  setIsLoading(true);
+  CriarBackup(newSaveName.trim()).then((result) => {
     toast({
       title: "Backup criado!",
-      description: `${newSave.name} salvo com sucesso.`,
+      description: `${newSaveName.trim()} salvo com sucesso.`,
     });
-  };
 
-  const handleActivate = (id: string) => {
-    setSaves((prev) =>
-      prev.map((save) => ({
-        ...save,
-        isActive: save.id === id,
-      }))
-    );
-    const activatedSave = saves.find((s) => s.id === id);
-    toast({
-      title: "Save ativado",
-      description: `${activatedSave?.name} agora e o save ativo.`,
-    });
-  };
-
-  const handleDelete = (id: string) => {
-    const saveToDelete = saves.find((s) => s.id === id);
-    setSaves((prev) => prev.filter((save) => save.id !== id));
-    toast({
-      title: "Save excluido",
-      description: `${saveToDelete?.name} foi removido.`,
-      variant: "destructive",
-    });
-  };
-
-  const handleDuplicate = (id: string) => {
-    const saveToDuplicate = saves.find((s) => s.id === id);
-    if (saveToDuplicate) {
-      const newSave: Save = {
-        ...saveToDuplicate,
-        id: Date.now().toString(),
-        name: `${saveToDuplicate.name}_copy`,
-        isActive: false,
-        lastModified: new Date().toLocaleString("pt-BR"),
-      };
-      setSaves((prev) => [...prev, newSave]);
-      toast({
-        title: "Save duplicado",
-        description: `Copia de ${saveToDuplicate.name} criada.`,
+    if (result) {
+      CarregarSaves().then((loadedSaves) => {
+        setSaves(loadedSaves.map((save: any) => ({
+          id: save.Id,
+          name: save.Name,
+          isActive: save.IsAtivo,
+          lastModified: save.LastModified,
+          size: save.Size,
+        })));
+        setIsLoading(false);
+        setNewSaveName("");
+        setIsDialogOpen(false);
       });
     }
-  };
+  });
+};
 
-  return (
-    <div className="min-h-screen bg-background p-6 md:p-8">
-      <div className="max-w-2xl mx-auto">
-        <Header />
-
-        <Card className="border-border bg-card/50 backdrop-blur">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <CardTitle className="text-lg font-display flex items-center gap-2">
-              <HardDrive className="w-5 h-5 text-primary" />
-              Saves
-            </CardTitle>
-            <div className="flex gap-2">
-              {!isInitialized ? (
-                <Button
-                  onClick={handleInitialize}
-                  disabled={isLoading}
-                  className="gap-2"
-                >
-                  <FolderPlus className="w-4 h-4" />
-                  {isLoading ? "Inicializando..." : "Inicializar"}
-                </Button>
-              ) : (
-                <>
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="gap-2">
-                        <SaveIcon className="w-4 h-4" />
-                        Criar Backup
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle className="font-display">Criar Backup do Save Atual</DialogTitle>
-                        <DialogDescription>
-                          Isso vai criar uma copia do save que esta rodando atualmente no jogo.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="py-4">
-                        <Input
-                          placeholder="Nome do backup (ex: Boss_Malenia)"
-                          value={newSaveName}
-                          onChange={(e) => setNewSaveName(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleCreateBackup()}
-                        />
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                          Cancelar
-                        </Button>
-                        <Button onClick={handleCreateBackup} disabled={isLoading}>
-                          {isLoading ? "Salvando..." : "Criar Backup"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleRefresh}
-                    disabled={isLoading}
-                  >
-                    <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-                  </Button>
-                </>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <SaveList
-              saves={saves}
-              onActivate={handleActivate}
-              onDelete={handleDelete}
-              onDuplicate={handleDuplicate}
-            />
-          </CardContent>
-        </Card>
-
-        <footer className="mt-8 text-center text-sm text-muted-foreground">
-          <p>Elden Ring Save Manager v1.0</p>
-        </footer>
-      </div>
-    </div>
+const handleActivate = (id: string) => {
+  setSaves((prev) =>
+    prev.map((save) => ({
+      ...save,
+      isActive: save.id === id,
+    }))
   );
+  const activatedSave = saves.find((s) => s.id === id);
+  toast({
+    title: "Save ativado",
+    description: `${activatedSave?.name} agora e o save ativo.`,
+  });
+};
+
+const handleDelete = (id: string) => {
+  const saveToDelete = saves.find((s) => s.id === id);
+  setSaves((prev) => prev.filter((save) => save.id !== id));
+  toast({
+    title: "Save excluido",
+    description: `${saveToDelete?.name} foi removido.`,
+    variant: "destructive",
+  });
+};
+
+const handleDuplicate = (id: string) => {
+  const saveToDuplicate = saves.find((s) => s.id === id);
+  if (saveToDuplicate) {
+    const newSave: Save = {
+      ...saveToDuplicate,
+      id: Date.now().toString(),
+      name: `${saveToDuplicate.name}_copy`,
+      isActive: false,
+      lastModified: new Date().toLocaleString("pt-BR"),
+    };
+    setSaves((prev) => [...prev, newSave]);
+    toast({
+      title: "Save duplicado",
+      description: `Copia de ${saveToDuplicate.name} criada.`,
+    });
+  }
+};
+
+return (
+  <div className="min-h-screen bg-background p-6 md:p-8">
+    <div className="max-w-2xl mx-auto">
+      <Header />
+
+      <Card className="border-border bg-card/50 backdrop-blur">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <CardTitle className="text-lg font-display flex items-center gap-2">
+            <HardDrive className="w-5 h-5 text-primary" />
+            Saves
+          </CardTitle>
+          <div className="flex gap-2">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <SaveIcon className="w-4 h-4" />
+                  Criar Backup
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="font-display">Criar Backup do Save Atual</DialogTitle>
+                  <DialogDescription>
+                    Isso vai criar uma copia do save que esta rodando atualmente no jogo.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Input
+                    placeholder="Nome do backup (ex: Boss_Malenia)"
+                    value={newSaveName}
+                    onChange={(e) => setNewSaveName(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleCreateBackup()}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleCreateBackup} disabled={isLoading}>
+                    {isLoading ? "Salvando..." : "Criar Backup"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <SaveList
+            saves={saves}
+            onActivate={handleActivate}
+            onDelete={handleDelete}
+            onDuplicate={handleDuplicate}
+          />
+        </CardContent>
+      </Card>
+
+      <footer className="mt-8 text-center text-sm text-muted-foreground">
+        <p>Elden Ring Save Manager v1.0</p>
+      </footer>
+    </div>
+  </div>
+);
 };
 
 export default Index;

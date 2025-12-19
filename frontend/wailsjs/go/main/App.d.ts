@@ -4,10 +4,10 @@ import {main} from '../models';
 
 export function CarregarSaves():Promise<Array<main.Save>>;
 
-export function DeletarDiretorios():Promise<boolean>;
+export function CriarBackup(arg1:string):Promise<boolean>;
 
-export function Greet(arg1:string):Promise<string>;
+export function DeletarDiretorios():Promise<boolean>;
 
 export function Inicializar():Promise<boolean>;
 
-export function ListaDiretorios():Promise<string>;
+export function TornarAtivo(arg1:string):Promise<boolean>;

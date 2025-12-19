@@ -6,18 +6,18 @@ export function CarregarSaves() {
   return window['go']['main']['App']['CarregarSaves']();
 }
 
-export function DeletarDiretorios() {
-  return window['go']['main']['App']['DeletarDiretorios']();
+export function CriarBackup(arg1) {
+  return window['go']['main']['App']['CriarBackup'](arg1);
 }
 
-export function Greet(arg1) {
-  return window['go']['main']['App']['Greet'](arg1);
+export function DeletarDiretorios() {
+  return window['go']['main']['App']['DeletarDiretorios']();
 }
 
 export function Inicializar() {
   return window['go']['main']['App']['Inicializar']();
 }
 
-export function ListaDiretorios() {
-  return window['go']['main']['App']['ListaDiretorios']();
+export function TornarAtivo(arg1) {
+  return window['go']['main']['App']['TornarAtivo'](arg1);
 }
