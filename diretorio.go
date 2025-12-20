@@ -34,8 +34,6 @@ func CriarBackupSave(name string) bool {
 		return false
 	}
 
-	fmt.Printf("nome %s", name)
-
 	CopyDir(eldenRingPath, savesPath, name)
 
 	return true
@@ -47,7 +45,7 @@ func CriarConfigFile(path string, id string, idSteam string) bool {
 		return true
 	}
 
-	content := fmt.Sprintf("%s\n%s\n", id, idSteam)
+	content := fmt.Sprintf("%s;\n%s\n", id, idSteam)
 
 	err := os.WriteFile(path+"/ativo.id", []byte(content), 0644)
 	if err != nil {

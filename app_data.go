@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strings"
 )
@@ -12,31 +11,36 @@ func VerificaSaveAtivo(name string) bool {
 	if err != nil {
 		panic(err)
 	}
-	saveIdPath := savesPath + "/" + name + "/save.id"
-	if _, statErr := os.Stat(saveIdPath); os.IsNotExist(statErr) {
+	saveBkpIdPath := savesPath + "/" + name + "/save.id"
+	if _, statErr := os.Stat(saveBkpIdPath); os.IsNotExist(statErr) {
 		return false
 	}
 
-	ativoAtualPath := savesPath + "/ativo.id"
-	if _, statErr := os.Stat(ativoAtualPath); os.IsNotExist(statErr) {
+	ativoSaves := savesPath + "/ativo.id"
+	if _, statErr := os.Stat(ativoSaves); os.IsNotExist(statErr) {
 		return false
 	}
 
-	idAtivoBruto, err := os.ReadFile(ativoAtualPath)
+	idAtivoSavesBytes, err := os.ReadFile(ativoSaves)
 	if err != nil {
 		panic(err)
 	}
 
-	idAtivoAtual := strings.TrimSpace(string(idAtivoBruto))
+	idAtivoSaves := []byte(strings.Split(string(idAtivoSavesBytes), ";")[0])
 
-	idBruto, err := os.ReadFile(saveIdPath)
+	idAtivoAtual := strings.TrimSpace(string(idAtivoSaves))
+
+	idSaveBkp, err := os.ReadFile(saveBkpIdPath)
+
 	if err != nil {
 		panic(err)
 	}
 
-	id := strings.TrimSpace(string(idBruto))
+	id := strings.TrimSpace(string(idSaveBkp))
 
-	fmt.Printf("IDS SENDO COMPARADOS %s ==== %s", id, idAtivoAtual)
+	// fmt.Printf("%s\n", id)
+	// fmt.Printf("%s\n", idAtivoAtual)
+
 	switch id {
 	case "":
 		return false
