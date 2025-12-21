@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Save struct {
@@ -79,7 +80,7 @@ func DeletarDiretorios() bool {
 	return true
 }
 
-func TornarAtivo(name string) bool {
+func TornarAtivo(name string, id string) bool {
 	savesPath, err := SavesPath()
 	if err != nil {
 		panic(err)
@@ -95,7 +96,7 @@ func TornarAtivo(name string) bool {
 
 	linhaAtivo := ""
 	for s.Scan() {
-		linhaAtivo = s.Text()
+		linhaAtivo = strings.TrimSpace(s.Text())
 		fmt.Printf("Tornar Ativo %s", linhaAtivo)
 	}
 

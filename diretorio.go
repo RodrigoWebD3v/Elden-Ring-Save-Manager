@@ -39,19 +39,22 @@ func CriarBackupSave(name string) bool {
 	return true
 }
 
-func CriarConfigFile(path string, id string, idSteam string) bool {
-	if _, statErr := os.Stat(path + "/ativo.id"); os.IsExist(statErr) {
-		fmt.Printf("ativo.id ja existe")
+func ConfigFile(id string, idSteam string) bool {
+	savesPath, err := SavesPath()
+
+	if _, err = os.Stat(savesPath + "/ativo.id"); err == nil {
+		fmt.Println("ativo.id já existe")
 		return true
 	}
 
 	content := fmt.Sprintf("%s;\n%s\n", id, idSteam)
 
-	err := os.WriteFile(path+"/ativo.id", []byte(content), 0644)
+	err = os.WriteFile(savesPath+"/ativo.id", []byte(content), 0644)
 	if err != nil {
 		fmt.Printf("Erro ao criar arquivo de configuracoes: %s\n", err)
 		return false
 	}
+
 	return true
 }
 

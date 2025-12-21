@@ -18,6 +18,6 @@ export function Inicializar() {
   return window['go']['main']['App']['Inicializar']();
 }
 
-export function TornarAtivo(arg1) {
-  return window['go']['main']['App']['TornarAtivo'](arg1);
+export function TornarAtivo(arg1, arg2) {
+  return window['go']['main']['App']['TornarAtivo'](arg1, arg2);
 }

@@ -17,6 +17,7 @@ func CopyDir(src string, dst string, name string) error {
 
 // copyDir copia recursivamente e só grava o arquivo de config na chamada raiz.
 func copyDir(src string, dst string, isRoot bool, name string) error {
+	nomeEldenRing := ""
 	srcInfo, err := os.Stat(src)
 	if err != nil {
 		return err
@@ -35,14 +36,17 @@ func copyDir(src string, dst string, isRoot bool, name string) error {
 
 	for _, entry := range entries {
 
-		nome := name
+		if nomeEldenRing == "" {
+			nomeEldenRing = entry.Name()
+		}
 
 		if name == "" {
-			nome = entry.Name()
+			name = entry.Name()
+			fmt.Printf("teste: %s", name)
 		}
 
 		srcPath := filepath.Join(src, entry.Name())
-		dstPath := filepath.Join(dst, nome)
+		dstPath := filepath.Join(dst, name)
 
 		if entry.IsDir() {
 			// Recursão
@@ -57,11 +61,12 @@ func copyDir(src string, dst string, isRoot bool, name string) error {
 				return err
 			}
 		}
+
 	}
 
 	if isRoot {
-		fmt.Printf("%s\n", dst)
-		CriarConfigFile(dst, id, name)
+		fmt.Printf("NAME QUE ELE VAI SALVAR NA CONFIG: %s\n", name)
+		ConfigFile(id, nomeEldenRing)
 	}
 
 	return nil

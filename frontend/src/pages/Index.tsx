@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { FolderPlus, RefreshCw, HardDrive, Save as SaveIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { CarregarSaves, CriarBackup, Inicializar } from "../../wailsjs/go/main/App";
+import { CarregarSaves, CriarBackup, Inicializar, TornarAtivo } from "../../wailsjs/go/main/App";
 
 // Mock data para demonstracao
 const mockSaves: Save[] = [
@@ -63,7 +63,7 @@ const Index = () => {
       CarregarSaves().then((loadedSaves) => {
         setIsInitialized(true);
         setSaves(loadedSaves.map((save: any) => ({
-          id: save.Id,
+          id: String(save.Id),
           name: save.Name,
           isActive: save.IsAtivo,
           lastModified: save.LastModified,
@@ -83,7 +83,7 @@ const Index = () => {
     setIsLoading(true);
     CarregarSaves().then((loadedSaves) => {
       setSaves(loadedSaves.map((save: any) => ({
-        id: save.Id,
+        id: String(save.Id),
         name: save.Name,
         isActive: save.IsAtivo,
         lastModified: save.LastModified,
@@ -108,7 +108,7 @@ const handleCreateBackup = async () => {
     if (result) {
       CarregarSaves().then((loadedSaves) => {
         setSaves(loadedSaves.map((save: any) => ({
-          id: save.Id,
+          id: String(save.Id),
           name: save.Name,
           isActive: save.IsAtivo,
           lastModified: save.LastModified,
@@ -130,6 +130,12 @@ const handleActivate = (id: string) => {
     }))
   );
   const activatedSave = saves.find((s) => s.id === id);
+  if (!activatedSave) {
+    return;
+  }
+
+  console.log("Ativando save:", activatedSave);
+  TornarAtivo(activatedSave.name, String(activatedSave.id));
   toast({
     title: "Save ativado",
     description: `${activatedSave?.name} agora e o save ativo.`,

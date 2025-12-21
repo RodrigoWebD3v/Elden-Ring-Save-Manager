@@ -10,4 +10,4 @@ export function DeletarDiretorios():Promise<boolean>;
 
 export function Inicializar():Promise<boolean>;
 
-export function TornarAtivo(arg1:string):Promise<boolean>;
+export function TornarAtivo(arg1:string,arg2:string):Promise<boolean>;

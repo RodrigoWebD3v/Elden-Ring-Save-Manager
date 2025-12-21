@@ -38,9 +38,6 @@ func VerificaSaveAtivo(name string) bool {
 
 	id := strings.TrimSpace(string(idSaveBkp))
 
-	// fmt.Printf("%s\n", id)
-	// fmt.Printf("%s\n", idAtivoAtual)
-
 	switch id {
 	case "":
 		return false

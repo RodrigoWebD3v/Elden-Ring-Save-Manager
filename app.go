@@ -32,8 +32,8 @@ func (a *App) CriarBackup(name string) bool {
 	return CriarBackupSave(name)
 }
 
-func (a *App) TornarAtivo(id string) bool {
-	return TornarAtivo(id)
+func (a *App) TornarAtivo(name string, id string) bool {
+	return TornarAtivo(name, id)
 }
 
 func (a *App) DeletarDiretorios() bool {
